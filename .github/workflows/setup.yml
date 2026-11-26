@@ -1,0 +1,16 @@
+name: Настройка бота
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Узнать CHAT_ID и поставить кнопку меню
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          APP_URL: ${{ vars.APP_URL }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python3 bot/setup_bot.py

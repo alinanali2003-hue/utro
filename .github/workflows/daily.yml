@@ -1,0 +1,36 @@
+name: Карточка дня
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # 03:00 UTC = 08:00 по Екатеринбургу / Алматы
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Отправить прямо сейчас (для проверки)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Отправить уведомление
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          APP_URL: ${{ vars.APP_URL }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+        run: python3 bot/send_daily.py
+      - name: Запомнить, что сегодня уже отправили
+        run: |
+          if [ -n "$(git status --porcelain last_sent.txt)" ]; then
+            git config user.name "love-bot"
+            git config user.email "love-bot@users.noreply.github.com"
+            git add last_sent.txt
+            git commit -m "Карточка отправлена $(cat last_sent.txt)"
+            git push
+          fi

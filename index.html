@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Доброе утро</title>
+<meta name="robots" content="noindex, nofollow">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,600&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE: нежно, тепло, коротко — как записка от любимого человека.
+IDEA: утренняя открытка; каждая карточка — фото + фраза дня.
+PICTURE: ваше фото крупно в белой рамке, фраза под ним.
+COLOUR and TYPE: розово-жёлтый рассвет над светло-серым, Inter, плотный заголовок.
+LAYOUT: одна колонка до 480px; главный экран, архив сеткой, открытая карточка.
+*/
+:root{
+  --bg:#EFEDF2; --ink:#1B1B1F; --soft:#4B4F58; --muted:#6B7280; --quote:#2E323A;
+  --pink:#F8B3D2; --heart:#E8457A; --dark:#1C1C1E; --card:#F7F6F9;
+  --top: max(20px, env(safe-area-inset-top), var(--tg-content-safe-area-inset-top, 0px));
+  color-scheme: light;
+}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg)}
+body{color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:clip;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+button:focus-visible{outline:3px solid var(--heart);outline-offset:3px}
+img{display:block;max-width:100%}
+
+.view{min-height:100vh;min-height:100dvh;max-width:480px;margin:0 auto;padding:calc(var(--top) + 8px) 24px calc(28px + env(safe-area-inset-bottom));
+  background:
+    linear-gradient(180deg, rgba(239,237,242,0) 0, rgba(239,237,242,0) 90px, var(--bg) 420px),
+    linear-gradient(90deg, #F7AECF 0%, #F8D0BE 50%, #FBF07C 100%);
+  background-repeat:no-repeat; background-size:100% 520px, 100% 520px; background-color:var(--bg);
+  display:flex;flex-direction:column;gap:18px}
+.view[hidden]{display:none}
+
+/* header */
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.date{margin:0 0 6px;font-size:15px;font-weight:500;color:var(--soft)}
+h1{margin:0;font-size:clamp(30px,9vw,38px);line-height:1.05;font-weight:700;letter-spacing:-.04em}
+h1 .h{color:var(--heart)}
+.badge{flex:none;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.75);display:grid;place-content:center;text-align:center}
+.badge b{display:block;font-size:22px;line-height:24px;letter-spacing:-.03em}
+.badge span{display:block;font-size:11px;line-height:13px;color:var(--muted);font-weight:500}
+
+/* card */
+.card{background:var(--card);border-radius:32px;box-shadow:0 10px 30px rgba(64,38,77,.08);overflow:hidden}
+.pw{background:#fff;border-radius:32px;padding:8px;box-shadow:0 4px 16px rgba(64,38,77,.06)}
+.photo{position:relative;border-radius:24px;overflow:hidden;aspect-ratio:4/4.2;background:#e7e3ea}
+.photo img{width:100%;height:100%;object-fit:cover;object-position:50% 35%;user-select:none;-webkit-user-drag:none}
+.chip{position:absolute;left:12px;top:12px;background:rgba(255,255,255,.88);border-radius:100px;padding:6px 12px;font-size:12px;font-weight:600}
+.quote{padding:18px 22px 22px}
+.quote .lbl{margin:0 0 8px;font-size:15px;font-style:italic;font-weight:600;color:var(--muted)}
+.quote p{margin:0;font-size:20px;line-height:27px;font-weight:500;letter-spacing:-.015em;color:var(--quote);text-wrap:pretty}
+
+/* recent */
+.recent{background:var(--dark);border-radius:28px;padding:16px;color:#fff}
+.recent .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.recent h2{margin:0;font-size:15px;font-weight:600}
+.recent .all{font-size:14px;font-weight:500;color:rgba(255,255,255,.6);min-height:32px;padding:0 4px}
+.thumbs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.thumbs button{display:flex;flex-direction:column;align-items:center;gap:6px}
+.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:16px}
+.thumbs span{font-size:11px;color:rgba(255,255,255,.6)}
+.empty{margin:0;font-size:14px;color:rgba(255,255,255,.6)}
+
+/* archive */
+.top{display:flex;justify-content:space-between;align-items:center;min-height:44px}
+.back{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.8);display:grid;place-items:center}
+.count{font-size:14px;font-weight:500;color:var(--soft)}
+.sub{margin:6px 0 0;font-size:15px;font-weight:500;color:var(--soft)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mini{background:#fff;border-radius:22px;padding:6px;text-align:left;box-shadow:0 6px 20px rgba(64,38,77,.07);display:flex;flex-direction:column}
+.mini img{width:100%;aspect-ratio:1/1;object-fit:cover;object-position:50% 35%;border-radius:16px;background:#e7e3ea}
+.mini .t{padding:10px 8px 8px}
+.mini .d{display:block;font-size:12px;font-weight:600;color:#9AA0AA;margin-bottom:4px}
+.mini .q{font-size:14px;line-height:19px;font-weight:500;letter-spacing:-.01em;color:var(--quote);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.mini.today .d{color:var(--heart)}
+
+/* soon */
+.soon{flex:1;display:grid;place-content:center;text-align:center;gap:10px;padding-bottom:10vh}
+.soon .big{font-size:64px;line-height:1}
+.soon p{margin:0;color:var(--soft);font-weight:500}
+
+/* hearts */
+.hearts{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.hearts i{position:absolute;font-style:normal;color:var(--heart);font-size:28px;animation:fly 1.6s ease-out forwards}
+@keyframes fly{0%{transform:translate(0,0) scale(.4);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),-260px) scale(1.2);opacity:0}}
+@media (prefers-reduced-motion:reduce){.hearts{display:none}}
+
+/* preview pill (only outside Telegram) */
+.demo{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:6;background:rgba(28,28,30,.88);color:#fff;border-radius:100px;padding:6px;display:flex;align-items:center;gap:4px;font-size:13px;font-weight:500;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+.demo button{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);font-size:18px}
+.demo span{padding:0 8px;white-space:nowrap}
+.fade{animation:in .35s ease both}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<main>
+  <section class="view" id="v-main" aria-live="polite"></section>
+  <section class="view" id="v-archive" hidden></section>
+  <section class="view" id="v-card" hidden></section>
+</main>
+<div class="hearts" id="hearts"></div>
+<div class="demo" id="demo" hidden>
+  <button type="button" id="dm" aria-label="Предыдущий день">−</button>
+  <span id="dl">Превью</span>
+  <button type="button" id="dp" aria-label="Следующий день">+</button>
+</div>
+
+<script>
+{
+/* ===== НАСТРОЙКИ ===== */
+const START = "2026-12-01";          // дата первой карточки (ГГГГ-ММ-ДД)
+const TZ = "Asia/Yekaterinburg";     // часовой пояс (UTC+5)
+/* ===================== */
+
+const tg = window.Telegram && window.Telegram.WebApp;
+const inTelegram = !!(tg && tg.initData);
+if (tg) { try { tg.ready(); tg.expand(); tg.setHeaderColor('#F7AECF'); tg.setBackgroundColor('#EFEDF2'); } catch(e){} }
+
+const DAY = 86400000;
+const [sy, sm, sd] = START.split('-').map(Number);
+const startUTC = Date.UTC(sy, sm - 1, sd);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const fmtLong = new Intl.DateTimeFormat('ru-RU', {weekday:'long', day:'numeric', month:'long', timeZone:'UTC'});
+const fmtDM = new Intl.DateTimeFormat('ru-RU', {day:'numeric', month:'long', timeZone:'UTC'});
+const fmtShort = new Intl.DateTimeFormat('ru-RU', {day:'2-digit', month:'2-digit', timeZone:'UTC'});
+const dateOf = n => new Date(startUTC + (n - 1) * DAY);
+const plural = (n, a, b, c) => { const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c); };
+
+function todayIndex() {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {timeZone: TZ, year:'numeric', month:'2-digit', day:'2-digit'}).formatToParts(new Date()).map(x => [x.type, x.value]));
+  return Math.floor((Date.UTC(+p.year, +p.month - 1, +p.day) - startUTC) / DAY) + 1;
+}
+
+let cards = [];
+let day = todayIndex();         // номер сегодняшнего дня
+let demo = false;
+
+const $ = id => document.getElementById(id);
+const views = { main: $('v-main'), archive: $('v-archive'), card: $('v-card') };
+let stack = ['main'];
+
+function haptic(kind) { try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(kind || 'light'); } catch(e){} }
+
+function show(name, push = true) {
+  for (const k in views) views[k].hidden = k !== name;
+  if (push) stack.push(name);
+  window.scrollTo(0, 0);
+  if (tg && tg.BackButton) { try { stack.length > 1 ? tg.BackButton.show() : tg.BackButton.hide(); } catch(e){} }
+}
+function back() { if (stack.length > 1) { stack.pop(); show(stack[stack.length - 1], false); } }
+if (tg && tg.BackButton) { try { tg.BackButton.onClick(back); } catch(e){} }
+
+const available = () => Math.min(day, cards.length);
+
+function cardHTML(c, opts) {
+  const head = opts.withBack
+    ? `<div class="top"><button class="back" type="button" data-act="back" aria-label="Назад">${chev}</button><span class="count">${esc(cap(fmtDM.format(dateOf(c.n))))}</span></div>`
+    : '';
+  return `${head}
+  <div class="head">
+    <div><p class="date">${esc(cap(fmtLong.format(dateOf(c.n))))}</p>
+    <h1>Доброе утро <span class="h">❤</span></h1></div>
+    <div class="badge" aria-label="День ${c.n}"><b>${c.n}</b><span>день</span></div>
+  </div>
+  <article class="card fade">
+    <div class="pw"><div class="photo" data-act="love">
+      <img src="${esc(c.photo)}" alt="Наше фото" loading="eager" draggable="false">
+      <span class="chip">Карточка № ${c.n}</span>
+    </div></div>
+    <div class="quote"><p class="lbl">Фраза дня</p><p>${esc(c.text)}</p></div>
+  </article>`;
+}
+
+const chev = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="#1B1B1F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function renderMain() {
+  const v = views.main;
+  if (day < 1) {
+    v.innerHTML = `<div class="soon"><div class="big" aria-hidden="true">💌</div>
+      <h1>Скоро здесь <span class="h">❤</span></h1>
+      <p>Первая карточка откроется ${esc(fmtDM.format(dateOf(1)))}</p></div>`;
+    return;
+  }
+  const k = available();
+  const c = cards[k - 1];
+  const prev = [];
+  for (let i = k - 1; i >= 1 && prev.length < 4; i--) prev.push(cards[i - 1]);
+  v.innerHTML = cardHTML(c, {withBack:false}) + `
+  <section class="recent" aria-label="Прошлые карточки">
+    <div class="row"><h2>Прошлые карточки</h2>${prev.length ? '<button class="all" type="button" data-act="all">Все →</button>' : ''}</div>
+    ${prev.length
+      ? `<div class="thumbs">${prev.map(p => `<button type="button" data-open="${p.n}"><img src="${esc(p.thumb)}" alt="Карточка ${p.n}" loading="lazy"><span>${esc(fmtShort.format(dateOf(p.n)))}</span></button>`).join('')}</div>`
+      : '<p class="empty">Завтра здесь появится первая прошлая карточка</p>'}
+  </section>`;
+}
+
+function renderArchive() {
+  const k = Math.max(0, available());
+  const list = [];
+  for (let i = k; i >= 1; i--) list.push(cards[i - 1]);
+  views.archive.innerHTML = `
+  <div class="top"><button class="back" type="button" data-act="back" aria-label="Назад">${chev}</button>
+    <span class="count">${k} ${plural(k,'карточка','карточки','карточек')}</span></div>
+  <div><h1>Наши карточки</h1><p class="sub">Нажми на любую, чтобы перечитать</p></div>
+  <div class="grid">${list.map(c => `
+    <button class="mini${c.n === k ? ' today' : ''}" type="button" data-open="${c.n}">
+      <img src="${esc(c.thumb)}" alt="" loading="lazy">
+      <span class="t"><span class="d">${c.n === k ? 'Сегодня' : esc(fmtDM.format(dateOf(c.n)))}</span><span class="q">${esc(c.text)}</span></span>
+    </button>`).join('')}</div>`;
+}
+
+function openCard(n) {
+  const c = cards[n - 1]; if (!c) return;
+  views.card.innerHTML = cardHTML(c, {withBack:true});
+  haptic('light');
+  show('card');
+}
+
+function hearts(x, y) {
+  const box = $('hearts');
+  for (let i = 0; i < 9; i++) {
+    const h = document.createElement('i');
+    h.textContent = '❤';
+    h.style.left = (x - 14 + (Math.random() * 60 - 30)) + 'px';
+    h.style.top = (y - 14 + (Math.random() * 30 - 15)) + 'px';
+    h.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+    h.style.animationDelay = (i * 60) + 'ms';
+    h.style.fontSize = (20 + Math.random() * 18) + 'px';
+    box.appendChild(h);
+    setTimeout(() => h.remove(), 2000 + i * 60);
+  }
+  haptic('medium');
+}
+
+let lastTap = 0;
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act],[data-open]');
+  if (!t) return;
+  if (t.dataset.open) return openCard(+t.dataset.open);
+  const a = t.dataset.act;
+  if (a === 'back') back();
+  else if (a === 'all') { renderArchive(); haptic('light'); show('archive'); }
+  else if (a === 'love') {
+    const now = Date.now();
+    if (now - lastTap < 350) hearts(e.clientX, e.clientY);
+    lastTap = now;
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') back(); });
+
+function renderAll() {
+  renderMain();
+  if (!views.archive.hidden) renderArchive();
+  if (demo) $('dl').textContent = day < 1 ? 'Превью · до старта' : `Превью · день ${day}`;
+}
+
+/* Превью вне Telegram: можно листать дни кнопками − и + */
+function setupDemo() {
+  if (inTelegram) return;
+  if (location.hash !== '#preview') {          // вне Telegram без #preview — ничего не показываем
+    views.main.innerHTML = '<div class="soon"><div class="big" aria-hidden="true">💌</div><h1>Это личное</h1><p>Открывается только в Telegram</p></div>';
+    return 'locked';
+  }
+  demo = true;
+  if (day < 1) day = 12;
+  $('demo').hidden = false;
+  $('dm').onclick = () => { day = Math.max(0, day - 1); stack = ['main']; show('main', false); renderAll(); };
+  $('dp').onclick = () => { day = Math.min(cards.length, day + 1); stack = ['main']; show('main', false); renderAll(); };
+}
+
+fetch('cards.json', {cache: 'no-cache'})
+  .then(r => r.json())
+  .then(data => { cards = data; if (setupDemo() !== 'locked') renderAll(); })
+  .catch(() => { views.main.innerHTML = '<div class="soon"><h1>Не получилось загрузить карточку</h1><p>Попробуй открыть ещё раз чуть позже</p></div>'; });
+}
+</script>
+</body>
+</html>
